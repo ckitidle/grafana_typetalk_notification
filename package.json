@@ -1,0 +1,25 @@
+{
+  "name": "grafana_typetalk_notification",
+  "version": "1.0.0",
+  "description": "Grafana to Typetalk notification.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chikat/grafana_typetalk_notification.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chikat/grafana_typetalk_notification/issues"
+  },
+  "homepage": "https://github.com/chikat/grafana_typetalk_notification#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  }
+}
