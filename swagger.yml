@@ -1,0 +1,81 @@
+openapi: 3.0.0
+info:
+  title: Grafana Typetalk notification
+  description: |
+    Web application for transferring Grafana's notification to Typetalk.  
+    [ckitidle/grafana_typetalk_notification | GitHub](https://github.com/ckitidle/grafana_typetalk_notification)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost/v1
+    description: Localhost.
+
+paths:
+  /topics/{topicId}:
+    post:
+      summary: Send to typetalk
+      description: Send Grafana notification to Typetalk topic.
+      parameters:
+        - $ref: '#/components/parameters/topicId'
+      requestBody:
+        description: |
+          Grafana notification data. http://docs.grafana.org/alerting/notifications/
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/grafanaNotificationData'
+      responses:
+        '200':
+          $ref: '#/components/responses/200OK'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '500':
+          $ref: '#/components/responses/500InternalServerError'
+
+components:
+  schemas:
+    ResponseBody:
+      type: object
+      properties:
+        message:
+          type: string
+    grafanaNotificationData:
+      type: object
+
+  parameters:
+    topicId:
+      name: topicId
+      in: path
+      description: Typetalk topic id.
+      required: true
+      schema:
+        type: integer
+
+  responses:
+    200OK:
+      description: OK.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseBody'
+    400BadRequest:
+      description: Bad request.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseBody'
+    401Unauthorized:
+      description: Unauthorized.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseBody'
+    500InternalServerError:
+      description: Server error occuerd, or failed to send.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ResponseBody'

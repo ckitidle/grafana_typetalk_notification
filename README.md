@@ -1,3 +1,3 @@
 # grafana_typetalk_notification
 
-Web application for transfer from Grafana notification to Typetalk.
+Web application for transferring from Grafana notification to Typetalk.

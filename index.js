@@ -41,7 +41,7 @@ app.post("/v1/topics/:topic_id", (req, res) => {
         res.json({ message: body })
       })
       .catch((err) => {
-        throw new Error('Send failed: ' + err.message);
+        res.status(err.stattusCode).json({ message: err.message })
       });
   }
 });
