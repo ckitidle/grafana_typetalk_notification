@@ -45,6 +45,8 @@ components:
           type: string
     grafanaNotificationData:
       type: object
+    typetalkResponseBody:
+      type: object
 
   parameters:
     topicId:
@@ -64,11 +66,13 @@ components:
 
   responses:
     200OK:
-      description: OK.
+      description: |
+        OK. Typetalk API response.  
+        https://developer.nulab.com/ja/docs/typetalk/api/1/post-message/
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ResponseBody'
+            $ref: '#/components/schemas/typetalkResponseBody'
     400BadRequest:
       description: Bad request.
       content:
