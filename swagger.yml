@@ -17,6 +17,7 @@ paths:
       description: Send Grafana notification to Typetalk topic.
       parameters:
         - $ref: '#/components/parameters/topicId'
+        - $ref: '#/components/parameters/typetalkToken'
       requestBody:
         description: |
           Grafana notification data. http://docs.grafana.org/alerting/notifications/
@@ -53,6 +54,13 @@ components:
       required: true
       schema:
         type: integer
+    typetalkToken:
+        name: typetalkToken
+        in: query
+        description: Typetalk token.
+        required: true
+        schema:
+          type: string
 
   responses:
     200OK:
