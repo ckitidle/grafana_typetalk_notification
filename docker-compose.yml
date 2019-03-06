@@ -6,6 +6,8 @@ services:
     image: notify
     ports:
       - 80:3000
+    volumes:
+      - ./:/app
 
   grafana:
     image: grafana/grafana
