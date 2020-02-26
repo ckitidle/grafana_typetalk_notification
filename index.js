@@ -1,61 +1,80 @@
-var express = require('express');
-var bodyParser = require('body-parser');
-var request = require('request-promise');
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const request = require('request-promise');
+const morgan = require('morgan');
+const ejs = require('ejs');
+const fs = require('fs');
+const path = require('path');
+//const parse = require('./parser');
 
-const parse = require('./parser');
+// Variables
 
-// Variables.
 const TYPETALK_TOPIC_URL = 'https://typetalk.com/api/v1/topics/';
+const PORT = 3000;
+const VIEWS_DIR = path.join(__dirname, 'views');
 
-// Server settings.
+// Server settings
+
 var app = express();
+app.use(morgan('combined'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", process.env.CORS_ALLOW_ORIGIN || '*');
-  res.header('Access-Control-Allow-Headers', process.env.CORS_ALLOW_HEADERS || 'Content-Type, Accept');
-  res.header('Access-Control-Allow-Methods', process.env.CORS_ALLOW_METHODS || 'POST, OPTIONS');
-  res.header('Access-Control-Max-Age', process.env.CORS_MAX_AGE || '86400');
-  next();
-});
-
-var server = app.listen(3000, () => console.log("Listening on port " + server.address().port));
-
-// Router settings.
-app.options("*", (req, res) => {
-  res.sendStatus(200);
-});
-
-app.post("/v1/topics/:topic_id", (req, res) => {
-  let topic_id = req.params.topic_id;
-  let access_token = req.query.typetalkToken;
-  if (!topic_id || !access_token || !req.body) {
-    res.status(400).json({ message: 'Invalid request.' })
-  } else {
-    // Parse Grafana JSON to Typetalk JSON.
-    let body = { message: parse(req.body) }
-    // Send topic request.
-    let options = {
-      url: TYPETALK_TOPIC_URL + topic_id,
-      method: 'POST',
-      qs: {
-        typetalkToken: access_token,
-      },
-      body: body,
-      json: true,
-    }
-    request(options)
-      .then((body) => {
-        res.json({ message: body })
-      })
-      .catch((err) => {
-        res.status(err.statusCode).json({ message: err.message })
-      });
-  }
-});
-
-// Handler settings.
+app.use(cors());
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.status || 500).send({ message: err.message });
+  console.log(err.stack);
+  res.status(err.status || 500).json({ message: err.message });
 });
+
+// Router settings
+
+app.options("*", (req, res) => {
+  res.status(200).send('OK');
+});
+
+app.post("/v1/topics/:topicId", (req, res) => {
+  // Get parameters.
+  let topicId = req.params.topicId;
+  let token = req.query.typetalkToken;
+  let isTest = req.query.isTest;
+  if (!topicId || !token || !req.body) {
+    return res.status(400).json({ message: 'Invalid request.' })
+  }
+
+  // Create request body for typetalk API.
+  let templateFile = topicId + '.ejs';
+  let templatePath = path.join(VIEWS_DIR, templateFile);
+  var body = '';
+
+  try {
+    let template = fs.readFileSync(templatePath, 'utf8');
+    body = ejs.render(template, req.body);
+  } catch (err) {
+    return res.status(400).json({ message: 'Template file is not found. - ' + templatePath })
+  }
+
+  if (isTest) {
+    return res.status(200).json(body);
+  }
+
+  // Send request to Typetalk.
+  let options = {
+    url: TYPETALK_TOPIC_URL + topicId,
+    method: 'POST',
+    qs: {
+      typetalkToken: token,
+    },
+    body: body,
+    json: true,
+  }
+  request(options)
+    .then((body) => {
+      res.status(200).json({ message: body })
+    })
+    .catch((err) => {
+      res.status(err.statusCode).json({ message: err.message })
+    });
+});
+
+// Start server.
+const server = app.listen(PORT, () => console.log("Listening on port " + server.address().port));
