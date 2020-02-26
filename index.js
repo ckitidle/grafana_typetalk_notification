@@ -1,12 +1,10 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const request = require('request-promise');
 const morgan = require('morgan');
 const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
-//const parse = require('./parser');
 
 // Variables
 
@@ -18,8 +16,9 @@ const VIEWS_DIR = path.join(__dirname, 'views');
 
 var app = express();
 app.use(morgan('combined'));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+// NOTE: Grafana can't send Content-Type header, so it always parses a request body as JSON format.
+app.use(express.json({ type: '*/*' }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use((err, req, res, next) => {
   console.log(err.stack);
@@ -50,7 +49,7 @@ app.post("/v1/topics/:topicId", (req, res) => {
     let template = fs.readFileSync(templatePath, 'utf8');
     body = ejs.render(template, req.body);
   } catch (err) {
-    return res.status(400).json({ message: 'Template file is not found. - ' + templatePath })
+    return res.status(400).json({ message: err.message, body: req.body })
   }
 
   if (isTest) {
