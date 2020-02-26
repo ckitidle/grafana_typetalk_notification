@@ -16,7 +16,8 @@ const VIEWS_DIR = path.join(__dirname, 'views');
 
 var app = express();
 app.use(morgan('combined'));
-app.use(express.json());
+// NOTE: Grafana can't send Content-Type header, so it always parses a request body as JSON format.
+app.use(express.json({ type: '*/*' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use((err, req, res, next) => {
