@@ -43,11 +43,11 @@ app.post("/v1/topics/:topicId", (req, res) => {
   // Create request body for typetalk API.
   let templateFile = topicId + '.ejs';
   let templatePath = path.join(VIEWS_DIR, templateFile);
-  var body = '';
+  var message = '';
 
   try {
     let template = fs.readFileSync(templatePath, 'utf8');
-    body = ejs.render(template, req.body);
+    message = ejs.render(template, req.body);
   } catch (err) {
     return res.status(400).json({ message: err.message, body: req.body })
   }
@@ -63,7 +63,7 @@ app.post("/v1/topics/:topicId", (req, res) => {
     qs: {
       typetalkToken: token,
     },
-    body: body,
+    body: { message: message },
     json: true,
   }
   request(options)
