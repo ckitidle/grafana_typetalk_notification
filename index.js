@@ -3,12 +3,16 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const request = require('request-promise');
 const morgan = require('morgan');
-const parse = require('./parser');
+const ejs = require('ejs');
+const fs = require('fs');
+const path = require('path');
+//const parse = require('./parser');
 
 // Variables
 
 const TYPETALK_TOPIC_URL = 'https://typetalk.com/api/v1/topics/';
 const PORT = 3000;
+const VIEWS_DIR = path.join(__dirname, 'views');
 
 // Server settings
 
@@ -29,21 +33,31 @@ app.options("*", (req, res) => {
 });
 
 app.post("/v1/topics/:topicId", (req, res) => {
+  // Get parameters.
   let topicId = req.params.topicId;
   let token = req.query.typetalkToken;
   let isTest = req.query.isTest;
-
   if (!topicId || !token || !req.body) {
     return res.status(400).json({ message: 'Invalid request.' })
   }
 
-  // Convert Grafana JSON to Typetalk JSON.
-  let body = { message: parse(req.body) }
+  // Create request body for typetalk API.
+  let templateFile = topicId + '.ejs';
+  let templatePath = path.join(VIEWS_DIR, templateFile);
+  var body = '';
+
+  try {
+    let template = fs.readFileSync(templatePath, 'utf8');
+    body = ejs.render(template, req.body);
+  } catch (err) {
+    return res.status(400).json({ message: 'Template file is not found. - ' + templatePath })
+  }
+
   if (isTest) {
     return res.status(200).json(body);
   }
 
-  // Send topic request.
+  // Send request to Typetalk.
   let options = {
     url: TYPETALK_TOPIC_URL + topicId,
     method: 'POST',
