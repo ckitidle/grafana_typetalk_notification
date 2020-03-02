@@ -5,5 +5,7 @@ WORKDIR /app
 
 RUN npm install
 
+RUN mkdir -p /app/logs && ln -snf /dev/stderr /app/logs/error.log 
+
 EXPOSE 3000
-CMD [ "node", "index.js" ]
+CMD [ "npm", "start" ]

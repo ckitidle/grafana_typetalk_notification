@@ -1,3 +1,5 @@
+'use strict';
+
 const express = require('express');
 const cors = require('cors');
 const request = require('request-promise');
@@ -5,12 +7,21 @@ const morgan = require('morgan');
 const ejs = require('ejs');
 const fs = require('fs');
 const path = require('path');
+const log4js = require('log4js');
 
 // Variables
 
 const TYPETALK_TOPIC_URL = 'https://typetalk.com/api/v1/topics/';
-const PORT = 3000;
 const VIEWS_DIR = path.join(__dirname, 'views');
+log4js.configure({
+  appenders: {
+    system: {type: 'file', filename: 'logs/error.log'}
+  },
+  categories: {
+    default: {appenders:['system'], level: 'debug'}
+  }
+});
+const logger = log4js.getLogger();
 
 // Server settings
 
@@ -21,7 +32,7 @@ app.use(express.json({ type: '*/*' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use((err, req, res, next) => {
-  console.log(err.stack);
+  logger.error(err.message + '\n' + err.stack);
   res.status(err.status || 500).json({ message: err.message });
 });
 
@@ -37,23 +48,24 @@ app.post("/v1/topics/:topicId", (req, res) => {
   let token = req.query.typetalkToken;
   let isTest = req.query.isTest;
   if (!topicId || !token || !req.body) {
-    return res.status(400).json({ message: 'Invalid request.' })
+    logger.error('Invalid request');
+    return res.status(400).json({ message: 'Invalid request' })
   }
 
   // Create request body for typetalk API.
-  let templateFile = topicId + '.ejs';
-  let templatePath = path.join(VIEWS_DIR, templateFile);
+  let templatePath = path.join(VIEWS_DIR, topicId + '.ejs');
   var message = '';
 
   try {
     let template = fs.readFileSync(templatePath, 'utf8');
     message = ejs.render(template, req.body);
   } catch (err) {
+    logger.error({ message: err.message, body: req.body });
     return res.status(400).json({ message: err.message, body: req.body })
   }
 
   if (isTest) {
-    return res.status(200).json(body);
+    return res.status(200).json(message);
   }
 
   // Send request to Typetalk.
@@ -71,9 +83,11 @@ app.post("/v1/topics/:topicId", (req, res) => {
       res.status(200).json({ message: body })
     })
     .catch((err) => {
+      logger.error('Failed to request to Typetalk API: ' + err.message);
+      logger.info('\n' + message);
       res.status(err.statusCode).json({ message: err.message })
     });
 });
 
 // Start server.
-const server = app.listen(PORT, () => console.log("Listening on port " + server.address().port));
+const server = app.listen(process.env.PORT || 3000, () => console.log("Listening on port " + server.address().port));

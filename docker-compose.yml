@@ -7,4 +7,5 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./:/app
+      - ./views:/app/views
+      - ./index.js:/app/index.js
