@@ -20,7 +20,7 @@
   "dependencies": {
     "cors": "^2.8.5",
     "ejs": "^3.0.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "log4js": "^6.1.2",
     "morgan": "^1.9.1",
     "request": "^2.88.2",
